@@ -1,5 +1,7 @@
+import copy
 import json
 
+import colour
 import neopixel
 import board
 import asyncio
@@ -10,21 +12,30 @@ import uuid
 
 NUMBER_OF_PIX = 12
 PIX_PIN = board.D18
-START_COLOR = [255, 255, 255]
-OFF_COLOR = [0, 0, 0]
+START_COLOR = '#ffffff'
+OFF_COLOR = '#000000'
 DEVICE_MAC_ADDRESS = ':'.join(['{:02x}'.format((uuid.getnode() >> ele) & 0xff) for ele in range(0, 8 * 6, 8)][::-1])
 DEFAULT_OFF_TEMPLATE = {
-    'device_status': 'ON',
-    'ambient': 'OFF',
-    'eye': {
-        'status': 'OFF',
-        'color': OFF_COLOR
-    },
-    'loading': {
-        'status': 'OFF',
-        'color': OFF_COLOR
+    'TURN_ON': 'OFF',
+    'TURN_OFF': 'ON',
+    'features':{
+        'AMBIENT': {
+            'status': 'OFF'
+        },
+        'EYE': {
+            'status': 'OFF',
+            'color': OFF_COLOR
+        },
+        'LOADING': {
+            'status': 'OFF',
+            'color': OFF_COLOR
+        }
     }
+
 }
+
+def hex_to_rgb(hex_color: str) -> list[int, int, int]:
+    return [int(element * 255) for element in colour.hex2rgb(hex_color)]
 
 
 def check_equality_of_macs(first_mac: str, second_mac: str) -> bool:
@@ -41,54 +52,56 @@ def check_equality_of_macs(first_mac: str, second_mac: str) -> bool:
 
 with neopixel.NeoPixel(PIX_PIN, NUMBER_OF_PIX, brightness=.2, auto_write=False) as pixels:
     async def on_message(message: AbstractIncomingMessage) -> None:
-        decoded_message = json.loads(message.body)
+        decoded_message = json.loads(message.body)['json']
 
         if not check_equality_of_macs(DEVICE_MAC_ADDRESS, decoded_message['device']['mac']):
             return
 
         if decoded_message['change']['mode'] == 'TURN_ON':
-            decoded_message['actual_status'] = DEFAULT_OFF_TEMPLATE
-            decoded_message['actual_status']['loading']['status'] = 'ON'
-            decoded_message['actual_status']['loading']['color'] = START_COLOR
+            decoded_message.update({'actual_status': copy.deepcopy(DEFAULT_OFF_TEMPLATE)})
+            decoded_message['actual_status']['features']['LOADING']['status'] = 'ON'
+            decoded_message['actual_status']['features']['LOADING']['color'] = START_COLOR
+            decoded_message['actual_status']['TURN_ON'] = 'ON'
+            decoded_message['actual_status']['TURN_OFF'] = 'OFF'
 
-            pixels.fill(OFF_COLOR)
+            pixels.fill(hex_to_rgb(OFF_COLOR))
             pixels.show()
             kill_task('current_loop')
-            asyncio.create_task(eye(START_COLOR), name='current_loop')
+            asyncio.create_task(loading(hex_to_rgb(START_COLOR)), name='current_loop')
         elif decoded_message['change']['mode'] == 'TURN_OFF':
-            decoded_message['actual_status'] = DEFAULT_OFF_TEMPLATE
-            decoded_message['actual_status']['device_status'] = 'OFF'
+            decoded_message.update({'actual_status': copy.deepcopy(DEFAULT_OFF_TEMPLATE)})
 
-            pixels.fill(OFF_COLOR)
+            pixels.fill(hex_to_rgb(OFF_COLOR))
             pixels.show()
+            kill_task('current_loop')
         elif decoded_message['change']['mode'] == 'AMBIENT':
-            decoded_message['actual_status'] = DEFAULT_OFF_TEMPLATE
-            decoded_message['actual_status']['ambient'] = 'ON'
+            decoded_message.update({'actual_status': copy.deepcopy(DEFAULT_OFF_TEMPLATE)})
+            decoded_message['actual_status']['features']['AMBIENT']['status'] = 'ON'
 
-            pixels.fill(OFF_COLOR)
+            pixels.fill(hex_to_rgb(OFF_COLOR))
             pixels.show()
             kill_task('current_loop')
             asyncio.create_task(ambient(), name='current_loop')
         elif decoded_message['change']['mode'] == 'EYE':
-            decoded_message['actual_status'] = DEFAULT_OFF_TEMPLATE
-            decoded_message['actual_status']['eye']['status'] = 'ON'
+            decoded_message.update({'actual_status': copy.deepcopy(DEFAULT_OFF_TEMPLATE)})
+            decoded_message['actual_status']['features']['EYE']['status'] = 'ON'
             color = decoded_message['change']['options']['color']
-            decoded_message['actual_status']['eye']['color'] = color
+            decoded_message['actual_status']['features']['EYE']['color'] = color
 
-            pixels.fill(OFF_COLOR)
+            pixels.fill(hex_to_rgb(OFF_COLOR))
             pixels.show()
             kill_task('current_loop')
-            asyncio.create_task(eye(color), name='current_loop')
+            asyncio.create_task(eye(hex_to_rgb(color)), name='current_loop')
         elif decoded_message['change']['mode'] == 'LOADING':
-            decoded_message['actual_status'] = DEFAULT_OFF_TEMPLATE
-            decoded_message['actual_status']['loading']['status'] = 'ON'
+            decoded_message.update({'actual_status': copy.deepcopy(DEFAULT_OFF_TEMPLATE)})
+            decoded_message['actual_status']['features']['LOADING']['status'] = 'ON'
             color = decoded_message['change']['options']['color']
-            decoded_message['actual_status']['loading']['color'] = color
+            decoded_message['actual_status']['features']['LOADING']['color'] = color
 
-            pixels.fill(OFF_COLOR)
+            pixels.fill(hex_to_rgb(OFF_COLOR))
             pixels.show()
             kill_task('current_loop')
-            asyncio.create_task(loading(color), name='current_loop')
+            asyncio.create_task(loading(hex_to_rgb(color)), name='current_loop')
 
         await message.ack()
 
@@ -113,7 +126,7 @@ with neopixel.NeoPixel(PIX_PIN, NUMBER_OF_PIX, brightness=.2, auto_write=False) 
         while True:
             for i in range(NUMBER_OF_PIX):
                 pixels[i] = color
-                pixels[(i + NUMBER_OF_PIX - 4) % NUMBER_OF_PIX] = OFF_COLOR
+                pixels[(i + NUMBER_OF_PIX - 4) % NUMBER_OF_PIX] = hex_to_rgb(OFF_COLOR)
                 pixels.show()
                 await asyncio.sleep(0.08)
 
@@ -172,7 +185,7 @@ with neopixel.NeoPixel(PIX_PIN, NUMBER_OF_PIX, brightness=.2, auto_write=False) 
             virtualhost='new_living_vhost'
         )
         async with connection:
-            asyncio.create_task(loading(START_COLOR), name='current_loop')
+            asyncio.create_task(eye(hex_to_rgb(START_COLOR)), name='current_loop')
 
             channel = await connection.channel()
 
