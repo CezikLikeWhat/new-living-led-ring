@@ -16,18 +16,18 @@ START_COLOR = '#ffffff'
 OFF_COLOR = '#000000'
 DEVICE_MAC_ADDRESS = ':'.join(['{:02x}'.format((uuid.getnode() >> ele) & 0xff) for ele in range(0, 8 * 6, 8)][::-1])
 DEFAULT_OFF_TEMPLATE = {
-    'TURN_ON': 'OFF',
-    'TURN_OFF': 'ON',
+    'TURN_ON': False,
+    'TURN_OFF': True,
     'features':{
         'AMBIENT': {
-            'status': 'OFF'
+            'status': False
         },
         'EYE': {
-            'status': 'OFF',
+            'status': False,
             'color': OFF_COLOR
         },
         'LOADING': {
-            'status': 'OFF',
+            'status': False,
             'color': OFF_COLOR
         }
     }
@@ -57,18 +57,7 @@ with neopixel.NeoPixel(PIX_PIN, NUMBER_OF_PIX, brightness=.2, auto_write=False) 
         if not check_equality_of_macs(DEVICE_MAC_ADDRESS, decoded_message['device']['mac']):
             return
 
-        if decoded_message['change']['mode'] == 'TURN_ON':
-            decoded_message.update({'actual_status': copy.deepcopy(DEFAULT_OFF_TEMPLATE)})
-            decoded_message['actual_status']['features']['LOADING']['status'] = 'ON'
-            decoded_message['actual_status']['features']['LOADING']['color'] = START_COLOR
-            decoded_message['actual_status']['TURN_ON'] = 'ON'
-            decoded_message['actual_status']['TURN_OFF'] = 'OFF'
-
-            pixels.fill(hex_to_rgb(OFF_COLOR))
-            pixels.show()
-            kill_task('current_loop')
-            asyncio.create_task(loading(hex_to_rgb(START_COLOR)), name='current_loop')
-        elif decoded_message['change']['mode'] == 'TURN_OFF':
+        if decoded_message['change']['mode'] == 'TURN_OFF':
             decoded_message.update({'actual_status': copy.deepcopy(DEFAULT_OFF_TEMPLATE)})
 
             pixels.fill(hex_to_rgb(OFF_COLOR))
@@ -76,7 +65,11 @@ with neopixel.NeoPixel(PIX_PIN, NUMBER_OF_PIX, brightness=.2, auto_write=False) 
             kill_task('current_loop')
         elif decoded_message['change']['mode'] == 'AMBIENT':
             decoded_message.update({'actual_status': copy.deepcopy(DEFAULT_OFF_TEMPLATE)})
-            decoded_message['actual_status']['features']['AMBIENT']['status'] = 'ON'
+            decoded_message['actual_status']['TURN_ON'] = True
+            decoded_message['actual_status']['TURN_OFF'] = False
+            decoded_message['actual_status']['features']['AMBIENT']['status'] = True
+            decoded_message['actual_status']['features']['LOADING']['status'] = False
+            decoded_message['actual_status']['features']['EYE']['status'] = False
 
             pixels.fill(hex_to_rgb(OFF_COLOR))
             pixels.show()
@@ -84,7 +77,12 @@ with neopixel.NeoPixel(PIX_PIN, NUMBER_OF_PIX, brightness=.2, auto_write=False) 
             asyncio.create_task(ambient(), name='current_loop')
         elif decoded_message['change']['mode'] == 'EYE':
             decoded_message.update({'actual_status': copy.deepcopy(DEFAULT_OFF_TEMPLATE)})
-            decoded_message['actual_status']['features']['EYE']['status'] = 'ON'
+            decoded_message['actual_status']['TURN_ON'] = True
+            decoded_message['actual_status']['TURN_OFF'] = False
+            decoded_message['actual_status']['features']['EYE']['status'] = True
+            decoded_message['actual_status']['features']['LOADING']['status'] = False
+            decoded_message['actual_status']['features']['AMBIENT']['status'] = False
+
             color = decoded_message['change']['options']['color']
             decoded_message['actual_status']['features']['EYE']['color'] = color
 
@@ -94,7 +92,12 @@ with neopixel.NeoPixel(PIX_PIN, NUMBER_OF_PIX, brightness=.2, auto_write=False) 
             asyncio.create_task(eye(hex_to_rgb(color)), name='current_loop')
         elif decoded_message['change']['mode'] == 'LOADING':
             decoded_message.update({'actual_status': copy.deepcopy(DEFAULT_OFF_TEMPLATE)})
-            decoded_message['actual_status']['features']['LOADING']['status'] = 'ON'
+            decoded_message['actual_status']['TURN_ON'] = True
+            decoded_message['actual_status']['TURN_OFF'] = False
+            decoded_message['actual_status']['features']['LOADING']['status'] = True
+            decoded_message['actual_status']['features']['EYE']['status'] = False
+            decoded_message['actual_status']['features']['AMBIENT']['status'] = False
+
             color = decoded_message['change']['options']['color']
             decoded_message['actual_status']['features']['LOADING']['color'] = color
 
