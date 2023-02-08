@@ -2,9 +2,11 @@
 This is the IoT module software that is part of the New Living system. 
 It allows you to run a program that communicates with the web application and is responsible for operating the LED ring. 
 It allows displaying such animations as:
-- loading effect
-- ambient mode
-- eye effect
+- Loading effect
+- Eye effect
+- Ambient mode
+
+Docker container-based IoT modules make it easy to run software on any supported device without having to install and configure a local environment.
 
 ## System requirements
 The only software you need to run is Docker.
