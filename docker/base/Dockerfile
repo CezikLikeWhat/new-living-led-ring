@@ -4,5 +4,6 @@ WORKDIR /new-living/
 
 COPY requirements.txt /new-living/requirements.txt
 
-RUN apt install python3-rpi.gpio && \
+RUN apt update -y && \
+    apt install -y python3-rpi.gpio && \
     pip3 install -r requirements.txt
