@@ -166,8 +166,6 @@ with neopixel.NeoPixel(PIX_PIN, NUMBER_OF_PIX, brightness=.2, auto_write=False) 
         global NUMBER_OF_PIX
         offset = 0
         while True:
-            i = 0
-            t = 0
             for i in range(0, NUMBER_OF_PIX):
                 c = 0
                 if ((offset + i) & 7) < 2:
@@ -182,10 +180,10 @@ with neopixel.NeoPixel(PIX_PIN, NUMBER_OF_PIX, brightness=.2, auto_write=False) 
 
     async def main() -> None:
         connection = await connect(
-            host='192.168.2.135',
-            login='device',
-            password='device',
-            virtualhost='new_living_vhost'
+            host=os.getenv('SERVER_ADDRESS'),
+            login=os.getenv('RABBIT_LOGIN'),
+            password=os.getenv('RABBIT_PASSWORD'),
+            virtualhost=os.getenv('RABBIT_VHOST')
         )
         async with connection:
             asyncio.create_task(eye(hex_to_rgb(START_COLOR)), name='current_loop')
