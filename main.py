@@ -37,7 +37,6 @@ DEFAULT_OFF_TEMPLATE = {
             'color': OFF_COLOR
         }
     }
-
 }
 
 
