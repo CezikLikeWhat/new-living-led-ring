@@ -10,15 +10,21 @@ from aio_pika.abc import AbstractIncomingMessage
 from colour import Color
 import uuid
 
-NUMBER_OF_PIX = 12
+NUMBER_OF_PIX = int(os.getenv('NUMBER_OF_PIX'))
+SERVER_ADDRESS = os.getenv('SERVER_ADDRESS')
+RABBIT_LOGIN = os.getenv('RABBIT_LOGIN')
+RABBIT_PASSWORD = os.getenv('RABBIT_PASSWORD')
+RABBIT_VHOST = os.getenv('RABBIT_VHOST')
+LED_BRIGHTNESS = int(os.getenv('LED_BRIGHTNESS'))
 PIX_PIN = board.D18
+
 START_COLOR = '#ffffff'
 OFF_COLOR = '#000000'
 DEVICE_MAC_ADDRESS = ':'.join(['{:02x}'.format((uuid.getnode() >> ele) & 0xff) for ele in range(0, 8 * 6, 8)][::-1])
 DEFAULT_OFF_TEMPLATE = {
     'TURN_ON': False,
     'TURN_OFF': True,
-    'features':{
+    'features': {
         'AMBIENT': {
             'status': False
         },
@@ -33,6 +39,7 @@ DEFAULT_OFF_TEMPLATE = {
     }
 
 }
+
 
 def hex_to_rgb(hex_color: str) -> list[int, int, int]:
     return [int(element * 255) for element in colour.hex2rgb(hex_color)]
@@ -50,7 +57,7 @@ def check_equality_of_macs(first_mac: str, second_mac: str) -> bool:
     return one == two
 
 
-with neopixel.NeoPixel(PIX_PIN, NUMBER_OF_PIX, brightness=.2, auto_write=False) as pixels:
+with neopixel.NeoPixel(PIX_PIN, NUMBER_OF_PIX, brightness=LED_BRIGHTNESS, auto_write=False) as pixels:
     async def on_message(message: AbstractIncomingMessage) -> None:
         decoded_message = json.loads(message.body)['json']
 
@@ -180,10 +187,10 @@ with neopixel.NeoPixel(PIX_PIN, NUMBER_OF_PIX, brightness=.2, auto_write=False) 
 
     async def main() -> None:
         connection = await connect(
-            host=os.getenv('SERVER_ADDRESS'),
-            login=os.getenv('RABBIT_LOGIN'),
-            password=os.getenv('RABBIT_PASSWORD'),
-            virtualhost=os.getenv('RABBIT_VHOST')
+            host=SERVER_ADDRESS,
+            login=RABBIT_LOGIN,
+            password=RABBIT_PASSWORD,
+            virtualhost=RABBIT_VHOST
         )
         async with connection:
             asyncio.create_task(eye(hex_to_rgb(START_COLOR)), name='current_loop')
