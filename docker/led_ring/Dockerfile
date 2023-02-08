@@ -5,8 +5,7 @@ ENV SERVER_ADDRES=127.0.0.1 \
     RABBIT_PASSWORD=device \
     RABBIT_VHOST=new_living_vhost
 
-RUN apt install python3-rpi.gpio && \
-    pip3 install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 COPY . .
 
