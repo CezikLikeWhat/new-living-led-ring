@@ -182,7 +182,7 @@ with neopixel.NeoPixel(PIX_PIN, NUMBER_OF_PIX, brightness=.2, auto_write=False) 
 
     async def main() -> None:
         connection = await connect(
-            host='192.168.1.12',
+            host='192.168.2.135',
             login='device',
             password='device',
             virtualhost='new_living_vhost'
