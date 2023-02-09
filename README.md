@@ -27,6 +27,10 @@ docker run -d \
            -e RABBIT_VHOST=<virtual host (RabbitMQ)> \
            -e LED_BRIGHTNESS=<led brightness in the range [0,1]>
 ```
+After executing the above command, you can execute the `docker ps` command to check whether the container has been successfully launched.
+
+If the container has not been started then run the `docker logs <container ID>` command to check the error that the software returned
+
 
 ## Contributing
 If you want to make an additional IoT module for the New Living system:

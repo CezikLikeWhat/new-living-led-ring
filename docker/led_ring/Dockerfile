@@ -1,4 +1,4 @@
-FROM cezarymackowski/new-living-device-base
+FROM cezarymackowski/new-living-device-base:latest
 
 ENV SERVER_ADDRESS=127.0.0.1 \
     RABBIT_LOGIN=device \
