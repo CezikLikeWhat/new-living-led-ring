@@ -37,7 +37,7 @@ If the container has not been started then run the `docker logs <container ID>` 
 If you want to make an additional IoT module for the New Living system:
 - It is recommended to use the [Aio-pika](https://aio-pika.readthedocs.io/en/latest/) library (python3) or a renewal for another programming language to ensure asynchronicity and correct operation of the software.
 - please contact the repository author 
-- post your Docker image under the name <your username>/new-living-<module name> on [DockerHub](https://hub.docker.com/).
+- post your Docker image under the name \<your username>/new-living-\<module name> on [DockerHub](https://hub.docker.com/).
 
 ## License
 
