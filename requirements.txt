@@ -13,7 +13,6 @@ colour==0.1.5
 idna==3.4
 multidict==6.0.4
 pamqp==3.2.1
-pipdeptree==2.3.3
 pyftdi==0.54.0
 pyserial==3.5
 pyusb==1.2.1
