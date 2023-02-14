@@ -25,7 +25,8 @@ docker run -d \
            -e RABBIT_LOGIN=<username (RabbitMQ) > \
            -e RABBIT_PASSWORD=<user password (RabbitMQ)> \
            -e RABBIT_VHOST=<virtual host (RabbitMQ)> \
-           -e LED_BRIGHTNESS=<led brightness in the range [0,1]>
+           -e LED_BRIGHTNESS=<led brightness in the range [0,1]> \
+           -e NUMBER_OF_PIX=12 \
            cezarymackowski/new-living-led-ring
 ```
 After executing the above command, you can execute the `docker ps` command to check whether the container has been successfully launched.
